@@ -10,8 +10,8 @@ import sys
 
 # train on 3 x 3
 
-data = np.load("../ising81x81_temp1.npy")[:, :9, :9]
-
+data = np.load("../ising81x81->27x27_using_w1_temp1_correlated.npy")[:, :9, :9]
+print("data", data.shape)
 # Create uncorrelated samples
 uncorrelated_data = []
 for _ in range(10000):
@@ -26,5 +26,6 @@ for _ in range(10000):
         uncorrelated.append(np.hstack(tile))
     uncorrelated_data.append(np.vstack(uncorrelated))
 
-np.save("../ising81x81_temp1_uncorrelated9x9.npy", np.array(uncorrelated_data))
+
+np.save("../ising81x81->9x9_using_w1_temp1_uncorrelated.npy", np.array(uncorrelated_data))
 # print(sample, vertical, horizontal)

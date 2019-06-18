@@ -1,6 +1,5 @@
 import torch
 import torch.nn as nn
-from torch.utils.data.dataset import Dataset
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 import supervised_convnet
@@ -15,22 +14,7 @@ correlated_data = np.load("../ising81x81_temp1.npy")[:10000,:9,:9]
 data = np.vstack((uncorrelated_data, correlated_data))
 label = np.hstack((-np.ones(10000), np.ones(10000)))
 X_train, X_test, y_train, y_test = train_test_split(data, label, test_size=0.33, random_state=42)
-
-
-class IsingDataset(Dataset):
-    def __init__(self, data, label):
-        self.X = data
-        self.y = label
-        
-        
-    def __getitem__(self, index):
-        return self.X[index], self.y[index]
-    
-    def __len__(self):
-        return len(self.X)
-   
-
-isingdataset = IsingDataset(X_train[:200], y_train[:200])
+isingdataset = supervised_convnet.IsingDataset(X_train[:200], y_train[:200])
 print(isingdataset.y)
 # raise ValueError
 
@@ -49,7 +33,7 @@ adjust_learning_rate = False
 criterion = nn.MSELoss()
 
 # build model
-model = supervised_convnet.SupervisedConvNet(filter_size = 3, square_size = 9)
+model = supervised_convnet.SupervisedConvNet(filter_size = 3, square_size = 3)
 
 # specify optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -98,6 +82,7 @@ for epoch in range(1, n_epochs+1):
         #     if param.requires_grad:
         #         print (name, param.data)
 
+patience = 0
 for batch_idx, (data, target) in enumerate(train_loader):
     data = data.unsqueeze(1).type('torch.FloatTensor')#[0].unsqueeze(1)
     # print("data", data)
@@ -108,28 +93,32 @@ for batch_idx, (data, target) in enumerate(train_loader):
     print("output", (output[:10]))
     print("target", target[:10])
     v = torch.tensor([[[[-1., -1., -1., -1., -1., -1., -1., -1., -1.],
-          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
-          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
-          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
-          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
-          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
-          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
-          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
-          [-1., -1., -1., -1., -1., -1., -1., -1., -1.]]]])
+        [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+        [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+        [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+        [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+        [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+        [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+        [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+        [-1., -1., -1., -1., -1., -1., -1., -1., -1.]]]])
     print("correlated model(v)", model(v))
     v = torch.tensor([[[[ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
-          [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
-          [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
-          [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
-          [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
-          [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
-          [-1., -1., -1.,  1.,  1.,  1., -1., -1., -1.],
-          [-1., -1., -1.,  1.,  1.,  1., -1., -1., -1.],
-          [-1., -1., -1.,  1.,  1.,  1., -1., -1., -1.]]]])
+        [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
+        [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
+        [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
+        [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
+        [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
+        [-1., -1., -1.,  1.,  1.,  1., -1., -1., -1.],
+        [-1., -1., -1.,  1.,  1.,  1., -1., -1., -1.],
+        [-1., -1., -1.,  1.,  1.,  1., -1., -1., -1.]]]])
     print("uncorrelated model(v)", model(v))
     # loss = criterion(output, target[0])
     # print("loss.data", loss.data)
     # loss.backward()
+    patience += 1
+    if patience > 100:
+        break
+    
 
 v = torch.tensor([[[[-1., -1., -1., -1., -1., -1., -1., -1., -1.],
           [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
@@ -146,5 +135,5 @@ for name, param in model.named_parameters():
     if param.requires_grad:
         print (name, param.data)
 
-torch.save(model.state_dict(), "9x9->3x3.pt")
+# torch.save(model.state_dict(), "9x9->3x3.pt")
     # optimizer.step()

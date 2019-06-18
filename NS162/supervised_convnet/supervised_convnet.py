@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.autograd as autograd
 from torch.autograd import Variable
 import torch.nn.functional as F
+from torch.utils.data.dataset import Dataset
 import math
 import numpy as np
 import sys
@@ -21,7 +22,7 @@ class SupervisedConvNet(nn.Module):
     def forward(self, x):
         # add hidden layers with relu activation function
         layer1 = torch.tanh(self.conv2d(x))
-        reshape = layer1.view(-1, 1, self.square_size)
+        reshape = layer1.view(-1, 1, self.square_size**2)
         layer2 = torch.tanh(self.linear1(reshape))
         # layer3 = torch.tanh(self.linear2(layer2))
         # layer3 = torch.clamp(layer3, 0, 1)
@@ -31,6 +32,18 @@ class SupervisedConvNet(nn.Module):
         #         print("el", el)
         # x = torch.tanh(self.decoder(x))
         return reshape, layer2#, layer3
+
+class IsingDataset(Dataset):
+    def __init__(self, data, label):
+        self.X = data
+        self.y = label
+        
+        
+    def __getitem__(self, index):
+        return self.X[index], self.y[index]
+    
+    def __len__(self):
+        return len(self.X)
 
 def adjust_learning_rate(optimizer, epoch, lr):
     """Sets the learning rate to the initial LR decayed by 10 every 30 epochs"""
