@@ -7,27 +7,25 @@ import math
 import numpy as np
 import sys
 
-class ConvAutoencoder(nn.Module):
+class SupervisedConvNet(nn.Module):
     def __init__(self, filter_size, square_size):
-        super(ConvAutoencoder, self).__init__()
+        super(SupervisedConvNet, self).__init__()
         self.filter_size = filter_size
         self.square_size = square_size
-        self.conv1d = nn.Conv1d(1, filter_size ** 2, 1, stride = 1) # up-sampling layer
         self.conv2d = nn.Conv2d(1, 1, filter_size, padding=0, stride = filter_size)  
-        self.decoder = nn.Linear(1, filter_size ** 2)
-        
-
+        self.linear1 = nn.Linear(filter_size ** 2, 100)
+        self.linear2 = nn.Linear(100, 1)
         
     def forward(self, x):
         # add hidden layers with relu activation function
-        x = F.relu(self.conv2d(x))
-        x = x.view(-1, 1, self.square_size)
-        
-        x = torch.tanh(self.conv1d(x))
+        layer1 = F.relu(self.conv2d(x))
+        reshape = layer1.view(-1, 1, self.square_size)
+        linear = self.linear(reshape)
+        layer2 = torch.sigmoid(linear)
         # for row in x:
         #     print("row", row)
         #     for el in row[0]:
         #         print("el", el)
         # x = torch.tanh(self.decoder(x))
-        return x.unsqueeze(1)
+        return conv2, layer1, reshape, linear, layer2
 
