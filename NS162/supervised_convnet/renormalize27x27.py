@@ -8,7 +8,6 @@ from torch.utils.tensorboard import SummaryWriter
 import sys
 from sklearn.model_selection import train_test_split
 
-w1_9x9_to_3x3 = (torch.load("9x9->3x3.pt"))
 
 class SupervisedConvNet(nn.Module):
     def __init__(self, filter_size, square_size):
@@ -99,14 +98,67 @@ for epoch in range(1, n_epochs+1):
     
     # print avg training statistics 
     # train_loss = train_loss/len(train_loader)
-    if epoch % 1 == 0:
+    if epoch % 10 == 0:
         print('Epoch: {} \tTraining Loss: {}'.format(
             epoch, 
             accuracy
             ))
-#         print("data", data[:10])
-        # print("output", (output)[:10])
-        # print("target", (target)[:10])
+        print("data", data)
+        print("output", (output))
+        print("target", (target))
+
+# patience = 0
+# for batch_idx, (data, target) in enumerate(train_loader):
+#     data = data.unsqueeze(1).type('torch.FloatTensor')#[0].unsqueeze(1)
+#     # print("data", data)
+#     target = target.type('torch.FloatTensor')
+#     optimizer.zero_grad()
+#     output = [i.view(-1) for i in model(data)]
+#     print("data", data[:10])
+#     print("output", (output[:10]))
+#     print("target", target[:10])
+#     v = torch.tensor([[[[-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+#         [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+#         [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+#         [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+#         [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+#         [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+#         [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+#         [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+#         [-1., -1., -1., -1., -1., -1., -1., -1., -1.]]]])
+#     print("correlated model(v)", model(v))
+#     v = torch.tensor([[[[ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
+#         [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
+#         [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
+#         [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
+#         [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
+#         [ 1.,  1.,  1.,  1.,  1.,  1., -1., -1., -1.],
+#         [-1., -1., -1.,  1.,  1.,  1., -1., -1., -1.],
+#         [-1., -1., -1.,  1.,  1.,  1., -1., -1., -1.],
+#         [-1., -1., -1.,  1.,  1.,  1., -1., -1., -1.]]]])
+#     print("uncorrelated model(v)", model(v))
+#     # loss = criterion(output, target[0])
+#     # print("loss.data", loss.data)
+#     # loss.backward()
+#     patience += 1
+#     if patience > 100:
+#         break
+    
+
+v = torch.tensor([[[[-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+          [-1., -1., -1., -1.,  1., -1., -1., -1., -1.],
+          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+          [-1., -1., -1., -1., -1., -1., -1., -1., -1.],
+          [-1., -1., -1., -1., -1., -1., -1., -1., -1.]]]])
+print("negative", model(v))
+print("positive", model(-v))
+
 for name, param in model.named_parameters():
     if param.requires_grad:
         print (name, param.data)
+
+torch.save(model.state_dict(), "9x9->3x3_from27x27.pt")

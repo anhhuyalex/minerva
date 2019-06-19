@@ -135,5 +135,5 @@ for name, param in model.named_parameters():
     if param.requires_grad:
         print (name, param.data)
 
-# torch.save(model.state_dict(), "9x9->3x3.pt")
+# torch.save(model.state_dict(), "9x9->3x3_from81x81.pt")
     # optimizer.step()

@@ -8,7 +8,7 @@ from torch.utils.tensorboard import SummaryWriter
 import sys
 from sklearn.model_selection import train_test_split
 
-w1_9x9_to_3x3 = (torch.load("9x9->3x3.pt"))
+w1_9x9_to_3x3 = (torch.load("9x9->3x3_from81x81.pt"))
 
 class RenormalizerConvNet(nn.Module):
     def __init__(self, filter_size, square_size):
