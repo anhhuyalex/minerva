@@ -8,31 +8,23 @@ from torch.utils.tensorboard import SummaryWriter
 import sys
 from sklearn.model_selection import train_test_split
 
-w1_9x9_to_3x3 = (torch.load("9x9->3x3_from81x81.pt"))
+w1_9x9_to_3x3_from27x27 = (torch.load("9x9->3x3_from27x27.pt"))
 
 class RenormalizerConvNet(nn.Module):
-    def __init__(self, filter_size, square_size):
+    def __init__(self, filter_size):
         super(RenormalizerConvNet, self).__init__()
         self.filter_size = filter_size
-        self.square_size = square_size
-        self.leakyrelu = torch.nn.LeakyReLU(0.1)
         self.conv2d = nn.Conv2d(1, 1, filter_size, padding=0, stride = filter_size)  
-        self.conv2d.weight = torch.nn.Parameter(w1_9x9_to_3x3['conv2d.weight'])
-        self.conv2d.bias = torch.nn.Parameter(w1_9x9_to_3x3['conv2d.bias'])
-        self.linear1 = nn.Linear(self.square_size ** 2, 1)
-        # self.linear2 = nn.Linear(100, 1)
+        self.conv2d.weight = torch.nn.Parameter(w1_9x9_to_3x3_from27x27['conv2d.weight'])
+        self.conv2d.bias = torch.nn.Parameter(w1_9x9_to_3x3_from27x27['conv2d.bias'])
         
 
     def forward(self, x):
         # add hidden layers with relu activation function
         layer1 = torch.tanh(self.conv2d(x))
-        reshape = layer1.view(-1, 1, self.square_size**2)
-        # print("reshape", reshape)
-        layer2 = torch.tanh(self.linear1(reshape))
-        return layer1, reshape, layer2
+        return layer1
 
-uncorrelated_data = np.load("../ising81x81_temp1_uncorrelated9x9.npy")
-correlated_data = np.load("../ising81x81_temp1.npy")[:10000,:,:]
+correlated_data = np.load("../ising81x81->27x27_using_w1_temp1_correlated.npy")[:10000,:,:]
 # data = np.vstack((uncorrelated_data, correlated_data))
 data = (correlated_data)
 # label = np.hstack((-np.ones(10000), np.ones(10000)))
@@ -58,7 +50,7 @@ adjust_learning_rate = False
 criterion = nn.MSELoss()
 
 # build model
-model = RenormalizerConvNet(3, 27)
+model = RenormalizerConvNet(3)
 
 # specify optimizer
 optimizer = torch.optim.Adam(model.parameters(), lr=lr)
@@ -85,11 +77,11 @@ for epoch in range(1, n_epochs+1):
         data = data.unsqueeze(1).type('torch.FloatTensor')
         target = target.type('torch.FloatTensor')
         optimizer.zero_grad()
-        output = model(data)[0].squeeze(1)
+        output = model(data).squeeze(1)
         # loss = criterion(output, target) 
-        print("data", data[:10])
-        print("output", (output.detach().numpy()).shape)
-        print("target", (target)[:10])
+        for i in range(10):
+            print("data", data[i])
+            print("output", (output.detach().numpy())[i])
 
 
-np.save("../ising81x81->27x27_using_w1_temp1_correlated.npy", output.detach().numpy())
+np.save("../ising27x27->9x9_using_w2_temp1_correlated.npy", output.detach().numpy())

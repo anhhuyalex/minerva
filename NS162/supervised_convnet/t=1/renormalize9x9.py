@@ -29,14 +29,16 @@ class SupervisedConvNet(nn.Module):
         return layer1, reshape, layer2
 
 # load already generated uncorrelated (in generate_uncorrelated_data.py)
-uncorrelated_data = np.load("../ising81x81->9x9_using_w1_temp1_uncorrelated.npy")
-# correlated data is 27x27 so take only 9x9 first element
-correlated_data = np.load("../ising81x81->27x27_using_w1_temp1_correlated.npy")[:10000,:9,:9] 
+uncorrelated_data = np.load("../ising27x27->9x9_using_w2_temp1_uncorrelated.npy")
+# correlated data is 9x9
+correlated_data = np.load("../ising27x27->9x9_using_w2_temp1_correlated.npy")[:10000,:9,:9] 
 data = np.vstack((uncorrelated_data, correlated_data))
 # data = (correlated_data)
 label = np.hstack((-np.ones(10000), np.ones(10000)))
 # label = np.hstack((np.ones(10000)))
-# print(data.shape)
+# np.set_printoptions(precision=1)
+# print(uncorrelated_data[:10])
+# print(label)
 X_train, X_test, y_train, y_test = train_test_split(data, label, test_size=0.33, random_state=42)
 isingdataset = supervised_convnet.IsingDataset(X_train[:200], y_train[:200])
 # isingdataset = supervised_convnet.IsingDataset(data, label)
@@ -46,9 +48,9 @@ isingdataset = supervised_convnet.IsingDataset(X_train[:200], y_train[:200])
 # Create training and test dataloaders
 num_workers = 0
 # how many samples per batch to load
-batch_size = 1
+batch_size = 200
 # number of epochs to train the model
-n_epochs = 100
+n_epochs = 1000
 # learning rate
 lr = 0.01
 # adjust learning rate?
@@ -94,7 +96,7 @@ for epoch in range(1, n_epochs+1):
         optimizer.step()
 
         # update running training loss
-        accuracy += (torch.sign(output) == target).item()
+        accuracy += (torch.sign(output) == target).sum().item()
     
     # print avg training statistics 
     # train_loss = train_loss/len(train_loader)
@@ -103,9 +105,9 @@ for epoch in range(1, n_epochs+1):
             epoch, 
             accuracy
             ))
-        print("data", data)
-        print("output", (output))
-        print("target", (target))
+        # print("data", data)
+        # print("output", (output))
+        # print("target", (target))
 
 # patience = 0
 # for batch_idx, (data, target) in enumerate(train_loader):
@@ -161,4 +163,4 @@ for name, param in model.named_parameters():
     if param.requires_grad:
         print (name, param.data)
 
-torch.save(model.state_dict(), "9x9->3x3_from27x27.pt")
+torch.save(model.state_dict(), "9x9->3x3_from9x9.pt")

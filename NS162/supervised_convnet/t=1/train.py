@@ -21,9 +21,9 @@ print(isingdataset.y)
 # Create training and test dataloaders
 num_workers = 0
 # how many samples per batch to load
-batch_size = 1
+batch_size = 200
 # number of epochs to train the model
-n_epochs = 100
+n_epochs = 1000
 # learning rate
 lr = 0.01
 # adjust learning rate?
@@ -45,7 +45,7 @@ train_loader = torch.utils.data.DataLoader(isingdataset, batch_size=batch_size, 
 for epoch in range(1, n_epochs+1):
     # monitor training loss
     accuracy = 0.0
-
+    train_loss = 0.0
     # adjust learning rate
     if adjust_learning_rate == True:
         supervised_convnet.adjust_learning_rate(optimizer, epoch, lr)
@@ -66,11 +66,12 @@ for epoch in range(1, n_epochs+1):
         optimizer.step()
 
         # update running training loss
-        accuracy += (torch.sign(output) == target).item()
+        accuracy += (torch.sign(output) == target).sum().item()
+        # train_loss += loss.item() * batch_size
     
     # print avg training statistics 
     # train_loss = train_loss/len(train_loader)
-    if epoch % 1 == 0:
+    if epoch % 10 == 0:
         print('Epoch: {} \tTraining Loss: {}'.format(
             epoch, 
             accuracy
@@ -135,5 +136,5 @@ for name, param in model.named_parameters():
     if param.requires_grad:
         print (name, param.data)
 
-# torch.save(model.state_dict(), "9x9->3x3_from81x81.pt")
+torch.save(model.state_dict(), "9x9->3x3.pt")
     # optimizer.step()
